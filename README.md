@@ -23,7 +23,7 @@ thread of messages, modeling and traversing relationships between
 messages, or searching messages with language-specific matching.
 
 This helps programatically extend the memory (the context) of a conversation 
-an individual bot can have which may outside of the token bucket boundaries 
+an individual bot can have which may leak outside of the token bucket boundaries 
 of the current chat API provided by OpenAI.
 
 It can be used to enable short-term memories to select relevant pieces to 
