@@ -58,7 +58,7 @@ chat := &graph.Chat{
 
 client := openai.NewClient(os.Getenv("OPENAI_API_KEY"))
 
-summary, _ := chat.Messages.Summarize(ctx, client)
+summary, _ := chat.Messages.Summarize(ctx, client, openai.ModelGPT4)
 
 fmt.Println(summary)
 // Output: The conversation is about Jon Snow's parentage. According to the 
