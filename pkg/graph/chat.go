@@ -70,11 +70,41 @@ func VisitMessages(ctx context.Context, message *Message, mset MessageSet, fn fu
 }
 
 // Message is a single chat message that is connected to other messages.
+//
+// This essentially a small wrapper around openai.ChatMessage to include
+// additional functionality for graph traversal, storage, searching, etc.
+//
+// # In and Out
+//
+// What it means for other messages to be "in" or "out" is a bit arbitrary,
+// and can be used for different purposes that are specific to your application.
+//
+// For example, in a chat graph, "in" messages are messages that are referenced
+// by this message, and "out" messages are messages that reference this
+// message. But, in a different application, "in" messages could be
+// messages that are "before" this message, and "out" messages could be
+// messages that are "after" this message. It all depends on the
+// application's requirements.
 type Message struct {
+	// ID is the unique identifier for the message.
 	ID string
+
+	// ChatMessage is the underlying OpenAI chat message, embedded
+	// for some convenience to access the underlying fields (e.g. Role, Content).
 	openai.ChatMessage
 
-	In  Messages
+	// In is a collection of messages that are going "in" (←) to this message,
+	// (e.g. referencing this message).
+	//
+	// Example, if this message is a response to another message, the
+	// other message could be in the "in" collection.
+	In Messages
+
+	// Out is a collection of messages that are going "out" (→) from this message,
+	// (e.g. referenced by this message).
+	//
+	// Example, if this message is a question, the response message could
+	// be in the "out" collection.
 	Out Messages
 }
 
