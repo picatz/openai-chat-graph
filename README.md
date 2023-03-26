@@ -47,7 +47,7 @@ lotrFellowshipQuestion := &graph.Message{
 lotrFellowshipAnswer := &graph.Message{
 	ID: "2",
 	ChatMessage: openai.ChatMessage{
-		Role:    openai.ChatRoleUser,
+		Role:    openai.ChatRoleAssistant,
 		Content: "The Fellowship of the Ring consists of nine members, ...",
 	},
 }
@@ -67,7 +67,7 @@ lotrFellowshipAnswer.AddOut(lotrFellowshipHobbitsQuestion)
 lotrFellowshipHobbitsAnswer := &graph.Message{
 	ID: "4",
 	ChatMessage: openai.ChatMessage{
-		Role:    openai.ChatRoleUser,
+		Role:    openai.ChatRoleAssistant,
 		Content: "Frodo, Sam, Merry, and Pippin are all from the Shire, ...",
 	},
 }
