@@ -1,4 +1,4 @@
-# openai-chat-graph
+# openai-chat-graph [![Go Reference](https://pkg.go.dev/badge/github.com/picatz/openai.svg)](https://pkg.go.dev/github.com/picatz/openai-chat-graph) [![Go Report Card](https://goreportcard.com/badge/github.com/picatz/openai-chat-graph)](https://goreportcard.com/report/github.com/picatz/openai-chat-graph) [![License: MPL 2.0](https://img.shields.io/badge/License-MPL_2.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0) 
  
 Model OpenAI chat messages as a graph.
 
