@@ -285,6 +285,8 @@ func TestChatMessagesSummarize(t *testing.T) {
 		"Jon Snow",
 		"Rhaegar Targaryen",
 		"Lyanna Stark",
+		"father",
+		"mother",
 	}
 
 	for _, word := range words {
