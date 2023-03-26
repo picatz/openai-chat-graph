@@ -12,9 +12,9 @@ import (
 
 // Chat is a "chat graph" that contains a connected set of messages.
 type Chat struct {
-	ID   string
-	Name string
-	Messages
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Messages `json:"messages"`
 }
 
 // Visit visits the chat graph in a depth-first-search manner
@@ -87,7 +87,7 @@ func VisitMessages(ctx context.Context, message *Message, mset MessageSet, fn fu
 // application's requirements.
 type Message struct {
 	// ID is the unique identifier for the message.
-	ID string
+	ID string `json:"id,omitempty"`
 
 	// ChatMessage is the underlying OpenAI chat message, embedded
 	// for some convenience to access the underlying fields (e.g. Role, Content).
@@ -98,14 +98,14 @@ type Message struct {
 	//
 	// Example, if this message is a response to another message, the
 	// other message could be in the "in" collection.
-	In Messages
+	In Messages `json:"in,omitempty"`
 
 	// Out is a collection of messages that are going "out" (→) from this message,
 	// (e.g. referenced by this message).
 	//
 	// Example, if this message is a question, the response message could
 	// be in the "out" collection.
-	Out Messages
+	Out Messages `json:"out,omitempty"`
 }
 
 // AddIn adds a message to the "in" messages.
@@ -147,16 +147,16 @@ type Messages []*Message
 // SearchResults is a collection of search results.
 type SearchResult struct {
 	// The message that matched the search query.
-	Message *Message
+	Message *Message `json:"message"`
 
 	// MessageIndex is the index of the message in the chat history.
-	MessageIndex int
+	MessageIndex int `json:"message_index"`
 
 	// MatchStart is the index of the start of the match in the message.
-	StartIndex int
+	StartIndex int `json:"start_index"`
 
 	// MatchEnd is the index of the end of the match in the message.
-	EndIndex int
+	EndIndex int `json:"end_index"`
 }
 
 // Search searches the messages for matches to a given query.
