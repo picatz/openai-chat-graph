@@ -118,6 +118,24 @@ func (m *Message) AddOut(msg *Message) {
 	m.Out = append(m.Out, msg)
 }
 
+// AddInOut adds a message to the "in" messages,
+// and adds this message to the "out" messages
+// of the other message to create an easily traversalable
+// bi-directional graph that is more strongly connected.
+func (m *Message) AddInOut(msg *Message) {
+	m.In = append(m.In, msg)
+	msg.Out = append(msg.Out, m)
+}
+
+// AddOutIn adds a message to the "out" messages,
+// and adds this message to the "in" messages
+// of the other message to create an easily traversalable
+// bi-directional graph that is more strongly connected.
+func (m *Message) AddOutIn(msg *Message) {
+	m.Out = append(m.Out, msg)
+	msg.In = append(msg.In, m)
+}
+
 // String returns a string representation of the message.
 func (m *Message) String() string {
 	return fmt.Sprintf("%s: %s", m.Role, m.Content)
