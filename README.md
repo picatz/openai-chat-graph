@@ -139,11 +139,9 @@ client := openai.NewClient(os.Getenv("OPENAI_API_KEY"))
 summary, _ := chat.Messages.Summarize(ctx, client, openai.ModelGPT4)
 
 fmt.Println(summary)
-// Output: The conversation is about Jon Snow's parentage. According to the 
-// show, Jon Snow's father is Rhaegar Targaryen and his mother is Lyanna Stark. 
-// However, in the books, it is a popular theory that his father is also 
-// Rhaegar, making him the true heir to the Iron Throne.
-
+// Output: Jon Snow's father is Rhaegar Targaryen, making him a Targaryen heir. 
+// His mother is Lyanna Stark, Ned Stark's younger sister. This information is 
+// confirmed in the TV show and strongly suggested in the books.
 
 // Search for messages containing the word "father".
 results, _ := chat.Messages.Search(ctx, "father")
