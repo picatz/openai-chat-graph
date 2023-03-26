@@ -161,15 +161,22 @@ type SearchResult struct {
 
 // Search searches the messages for matches to a given query.
 func (msgs Messages) Search(ctx context.Context, query string) []*SearchResult {
+	// Create a new matcher to be compiled into a pattern.
 	matcher := search.New(language.AmericanEnglish, search.IgnoreCase)
 
+	// Compile the query into a pattern that can be used to match messages.
 	pattern := matcher.CompileString(query)
 
+	// Results retrieved from the search.
 	results := []*SearchResult{}
 
+	// Iterate over the messages and collect any matches.
 	for i, msg := range msgs {
-		msg := msg
+		msg := msg // Avoid shadowing.
+
+		// If the message matches the pattern, add it to the results.
 		if start, end := pattern.IndexString(msg.Content); start != -1 && end != -1 {
+			// Add the result.
 			results = append(results, &SearchResult{
 				Message:      msg,
 				MessageIndex: i,
@@ -179,6 +186,7 @@ func (msgs Messages) Search(ctx context.Context, query string) []*SearchResult {
 		}
 	}
 
+	// Return the results.
 	return results
 }
 
