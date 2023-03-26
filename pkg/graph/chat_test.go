@@ -40,27 +40,194 @@ func TestChatMessagesSearch(t *testing.T) {
 }
 
 func TestChatMessagesVisit(t *testing.T) {
-	// Basic chat graph.
-	chat := &graph.Chat{
-		ID:   "chat-1",
-		Name: "Test Chat",
-		Messages: graph.Messages{
-			&graph.Message{
-				ID: "message-1",
-				ChatMessage: openai.ChatMessage{
-					Role:    openai.ChatRoleUser,
-					Content: "Hello World!",
+	t.Run("basic", func(t *testing.T) {
+		// Basic chat graph with a single message.
+		chat := &graph.Chat{
+			ID:   "chat-1",
+			Name: "Test Chat",
+			Messages: graph.Messages{
+				&graph.Message{
+					ID: "message-1",
+					ChatMessage: openai.ChatMessage{
+						Role:    openai.ChatRoleUser,
+						Content: "Hello World!",
+					},
 				},
 			},
-		},
-	}
-
-	// Visit the chat graph.
-	chat.Visit(context.Background(), func(message *graph.Message) error {
-		if message.Content != "Hello World!" {
-			t.Fatalf("expected message content to be %q, got %q", "Hello World!", message.Content)
 		}
-		return nil
+
+		// Visit the chat graph.
+		chat.Visit(context.Background(), func(message *graph.Message) error {
+			if message.Content != "Hello World!" {
+				t.Fatalf("expected message content to be %q, got %q", "Hello World!", message.Content)
+			}
+			return nil
+		})
+	})
+
+	t.Run("multiple", func(t *testing.T) {
+		// Basic chat graph with multiple messages.
+		chat := &graph.Chat{
+			ID:   "chat-1",
+			Name: "Test Chat",
+			Messages: graph.Messages{
+				&graph.Message{
+					ID: "message-1",
+					ChatMessage: openai.ChatMessage{
+						Role:    openai.ChatRoleUser,
+						Content: "Hello World from 1!",
+					},
+				},
+				&graph.Message{
+					ID: "message-2",
+					ChatMessage: openai.ChatMessage{
+						Role:    openai.ChatRoleUser,
+						Content: "Hello World from 2!",
+					},
+				},
+			},
+		}
+
+		count := 0
+
+		// Visit the chat graph.
+		chat.Visit(context.Background(), func(message *graph.Message) error {
+			if !strings.Contains(message.Content, "Hello World") {
+				t.Fatalf("expected message content to contain %q, got %q", "Hello World", message.Content)
+			}
+
+			count++
+
+			return nil
+		})
+
+		if count != 2 {
+			t.Fatalf("expected 2 messages to be visited, got %d", count)
+		}
+	})
+
+	t.Run("shallow", func(t *testing.T) {
+		m1 := &graph.Message{
+			ID: "message-1",
+			ChatMessage: openai.ChatMessage{
+				Role:    openai.ChatRoleUser,
+				Content: "a",
+			},
+		}
+
+		m2 := &graph.Message{
+			ID: "message-2",
+			ChatMessage: openai.ChatMessage{
+				Role:    openai.ChatRoleUser,
+				Content: "b",
+			},
+		}
+
+		m1.AddOut(m2)
+
+		chat := &graph.Chat{
+			ID:   "chat-1",
+			Name: "Test Chat",
+			Messages: graph.Messages{
+				m1,
+			},
+		}
+
+		count := 0
+
+		chat.Visit(context.Background(), func(message *graph.Message) error {
+			switch message.ID {
+			case "message-1":
+				if message.Content != "a" {
+					t.Fatalf("expected message content to be %q, got %q", "a", message.Content)
+				}
+			case "message-2":
+				if message.Content != "b" {
+					t.Fatalf("expected message content to be %q, got %q", "b", message.Content)
+				}
+			default:
+				t.Fatalf("unexpected message id %q", message.ID)
+			}
+
+			count++
+
+			return nil
+		})
+	})
+
+	t.Run("deep", func(t *testing.T) {
+		m1 := &graph.Message{
+			ID: "message-1",
+			ChatMessage: openai.ChatMessage{
+				Role:    openai.ChatRoleUser,
+				Content: "a",
+			},
+		}
+
+		m2 := &graph.Message{
+			ID: "message-2",
+			ChatMessage: openai.ChatMessage{
+				Role:    openai.ChatRoleAssistant,
+				Content: "b",
+			},
+		}
+
+		m3 := &graph.Message{
+			ID: "message-3",
+			ChatMessage: openai.ChatMessage{
+				Role:    openai.ChatRoleUser,
+				Content: "c",
+			},
+		}
+
+		m4 := &graph.Message{
+			ID: "message-4",
+			ChatMessage: openai.ChatMessage{
+				Role:    openai.ChatRoleAssistant,
+				Content: "d",
+			},
+		}
+
+		m1.AddOut(m2)
+		m2.AddOut(m3)
+		m3.AddOut(m4)
+
+		chat := &graph.Chat{
+			ID:   "chat-1",
+			Name: "Test Chat",
+			Messages: graph.Messages{
+				m1,
+			},
+		}
+
+		count := 0
+
+		chat.Visit(context.Background(), func(message *graph.Message) error {
+			switch message.ID {
+			case "message-1":
+				if message.Content != "a" {
+					t.Fatalf("expected message content to be %q, got %q", "a", message.Content)
+				}
+			case "message-2":
+				if message.Content != "b" {
+					t.Fatalf("expected message content to be %q, got %q", "b", message.Content)
+				}
+			case "message-3":
+				if message.Content != "c" {
+					t.Fatalf("expected message content to be %q, got %q", "c", message.Content)
+				}
+			case "message-4":
+				if message.Content != "d" {
+					t.Fatalf("expected message content to be %q, got %q", "d", message.Content)
+				}
+			default:
+				t.Fatalf("unexpected message id %q", message.ID)
+			}
+
+			count++
+
+			return nil
+		})
 	})
 }
 
