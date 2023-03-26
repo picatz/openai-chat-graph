@@ -165,7 +165,7 @@ func (msgs Messages) Search(ctx context.Context, query string) []*SearchResult {
 }
 
 // Summarize summarizes the messages using the OpenAI API.
-func (msgs Messages) Summarize(ctx context.Context, client *openai.Client) (string, error) {
+func (msgs Messages) Summarize(ctx context.Context, client *openai.Client, model string) (string, error) {
 	// Create a new thread with a new system prompt to summarize conversation.
 	chatHistory := []openai.ChatMessage{
 		{
@@ -193,7 +193,7 @@ func (msgs Messages) Summarize(ctx context.Context, client *openai.Client) (stri
 
 	// create a summary of the chat history
 	summary, err := client.CreateChat(ctx, &openai.CreateChatRequest{
-		Model:    openai.ModelGPT35Turbo,
+		Model:    model,
 		Messages: chatHistory,
 	})
 

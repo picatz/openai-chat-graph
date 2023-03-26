@@ -1,4 +1,6 @@
 github.com/picatz/openai v0.0.0-20230305035449-a77aaaac9fdd h1:yxf5VfP0HdUlez8OBs3dUwYCD24LBeYUVlVeCGCN0E8=
 github.com/picatz/openai v0.0.0-20230305035449-a77aaaac9fdd/go.mod h1:2EY54TlbWqi5JWdvjdhZ/wuR4NIOyqARmOZNuNHlsus=
+github.com/picatz/openai v0.0.0-20230326170916-6563ee8868c8 h1:tp24Ihv5/8pIhf16PZ346NSEfS6e6Uy3jq4cYndbS+8=
+github.com/picatz/openai v0.0.0-20230326170916-6563ee8868c8/go.mod h1:qzX4zX71g8itFZFumeIDpQXc5ZBM+5QbksavJ90hLFk=
 golang.org/x/text v0.8.0 h1:57P1ETyNKtuIjB4SRd15iJxuhj8Gc416Y78H3qgMh68=
 golang.org/x/text v0.8.0/go.mod h1:e1OnstbJyHTd6l/uOt8jFFHp6TRDWZR/bV3emEE/zU8=

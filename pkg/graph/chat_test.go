@@ -275,7 +275,7 @@ func TestChatMessagesSummarize(t *testing.T) {
 	client := openai.NewClient(os.Getenv("OPENAI_API_KEY"))
 
 	// Summarize the chat graph messages.
-	summary, err := chat.Messages.Summarize(context.Background(), client)
+	summary, err := chat.Messages.Summarize(context.Background(), client, openai.ModelGPT4) // TODO: use OPENAI_MODEL environment variable
 	if err != nil {
 		t.Fatal(err)
 	}
