@@ -16,7 +16,85 @@ $ go get github.com/picatz/openai-chat-graph
 
 ## Usage
 
+This package provides a flexible package to model OpenAI chat 
+messages as a [graph](https://en.wikipedia.org/wiki/Graph_theory).
+This allows for a variety of use cases, such as summarizing a
+thread of messages, modeling and traversing relationships between
+messages, or searching messages with language-specific matching.
+
+This helps programatically extend the memory (the context) of a conversation 
+an individual bot can have which may outside of the token bucket boundaries 
+of the current chat API provided by OpenAI.
+
+It can be used to enable short-term memories to select relevant pieces to 
+include in a single chat request to form a new idea. You may also serialize
+the conversation to disk (or a database) to enable long-term memory.
+
+Messages can be modified, added or removed from the graph in any way that makes 
+sense for your application.
+
 ```go
+// Linking questions and answers together.
+
+lotrFellowshipQuestion := &graph.Message{
+	ID: "1",
+	ChatMessage: openai.ChatMessage{
+		Role:    openai.ChatRoleUser,
+		Content: "What are characters part of the fellowship in Lord of the Rings?",
+	},
+}
+
+lotrFellowshipAnswer := &graph.Message{
+	ID: "2",
+	ChatMessage: openai.ChatMessage{
+		Role:    openai.ChatRoleUser,
+		Content: "The Fellowship of the Ring consists of nine members, ...",
+	},
+}
+
+lotrFellowshipQuestion.AddOut(lotrFellowshipAnswer)
+
+lotrFellowshipHobbitsQuestion := &graph.Message{
+	ID: "3",
+	ChatMessage: openai.ChatMessage{
+		Role:    openai.ChatRoleUser,
+		Content: "How do the Hobbits know eachother?",
+	},
+}
+
+lotrFellowshipAnswer.AddOut(lotrFellowshipHobbitsQuestion)
+
+lotrFellowshipHobbitsAnswer := &graph.Message{
+	ID: "4",
+	ChatMessage: openai.ChatMessage{
+		Role:    openai.ChatRoleUser,
+		Content: "Frodo, Sam, Merry, and Pippin are all from the Shire, ...",
+	},
+}
+
+lotrFellowshipHobbitsQuestion.AddOut(lotrFellowshipHobbitsAnswer)
+
+chat := &graph.Chat{
+	ID:   "LOTR",
+	Name: "Lord of the Rings",
+	Messages: graph.Messages{
+		lotrFellowshipQuestion, // The root message of the chat graph.
+	},
+}
+
+// Visit each message in the graph, depth-first. Print each message's content.
+chat.Visit(ctx, func(message *graph.Message) error {
+	fmt.Println(message.Content)
+	return nil
+})
+
+// Resulting connections:
+//
+// lotrFellowshipQuestion → lotrFellowshipAnswer → lotrFellowshipHobbitsQuestion → lotrFellowshipHobbitsAnswer
+```
+
+```go
+// Basic (flat) list of messages can also be used at the top-level.
 chat := &graph.Chat{
 	ID:   "chat-1",
 	Name: "Test Chat",
@@ -65,20 +143,17 @@ fmt.Println(summary)
 // show, Jon Snow's father is Rhaegar Targaryen and his mother is Lyanna Stark. 
 // However, in the books, it is a popular theory that his father is also 
 // Rhaegar, making him the true heir to the Iron Throne.
-```
 
-```go
+
+// Search for messages containing the word "father".
 results, _ := chat.Messages.Search(ctx, "father")
-
 fmt.Println(len(results))
 // Output: 3
-```
 
-```go
 // Visit each message in the graph, depth-first.
 chat.Visit(ctx, func(message *graph.Message) error {
 	// Do something with the message.
-    fmt.Println(message.Content)
+	fmt.Println(message.Content)
 	return nil
 })
 ```
