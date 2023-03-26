@@ -190,20 +190,31 @@ func (msgs Messages) Search(ctx context.Context, query string) []*SearchResult {
 	return results
 }
 
+// DefaultSummaryPrompt is the default prompt used to summarize messages for the Summarize method.
+var DefaultSummaryPrompt = strings.Join(
+	[]string{
+		"You are an expert at summarization that answers as concisely as possible.",
+		"Provide a summary of the given conversation, including all the key information (e.g. people, places, events, things, etc) to continue on the conversation.",
+	}, " ",
+)
+
 // Summarize summarizes the messages using the OpenAI API.
 func (msgs Messages) Summarize(ctx context.Context, client *openai.Client, model string) (string, error) {
-	// Create a new thread with a new system prompt to summarize conversation.
+	return msgs.SummarizeWithSystemPrompt(ctx, client, model, DefaultSummaryPrompt)
+}
+
+// Summarize summarizes the messages using the OpenAI API.
+func (msgs Messages) SummarizeWithSystemPrompt(ctx context.Context, client *openai.Client, model string, summarySystemPrompt string) (string, error) {
+	// Create a thread of two messages, using a new system prompt to summarize conversation.
 	chatHistory := []openai.ChatMessage{
 		{
 			Role:    openai.ChatRoleSystem,
-			Content: "Answer as concisely as possible to summarize a conversation, capturing the most important points to continue the conversation.",
+			Content: summarySystemPrompt,
 		},
 		{
 			Role: openai.ChatRoleUser,
 			Content: func() string {
 				var b strings.Builder
-
-				b.WriteString("Summarize the following conversation:\n\n")
 
 				for _, m := range msgs {
 					if m.Role == openai.ChatRoleSystem {
