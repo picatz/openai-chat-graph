@@ -78,6 +78,21 @@ type Message struct {
 	Out Messages
 }
 
+// AddIn adds a message to the "in" messages.
+func (m *Message) AddIn(msg *Message) {
+	m.In = append(m.In, msg)
+}
+
+// AddOut adds a message to the "out" messages.
+func (m *Message) AddOut(msg *Message) {
+	m.Out = append(m.Out, msg)
+}
+
+// String returns a string representation of the message.
+func (m *Message) String() string {
+	return fmt.Sprintf("%s: %s", m.Role, m.Content)
+}
+
 // Messages is a collection of messages.
 type Messages []*Message
 
