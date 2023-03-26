@@ -310,3 +310,57 @@ func TestChatMessagesSummarize(t *testing.T) {
 		return nil
 	})
 }
+
+func TestChatMessagesQandA(t *testing.T) {
+	lotrFellowshipQuestion := &graph.Message{
+		ID: "1",
+		ChatMessage: openai.ChatMessage{
+			Role:    openai.ChatRoleUser,
+			Content: "What are characters part of the fellowship in Lord of the Rings?",
+		},
+	}
+
+	lotrFellowshipAnswer := &graph.Message{
+		ID: "2",
+		ChatMessage: openai.ChatMessage{
+			Role:    openai.ChatRoleUser,
+			Content: "The Fellowship of the Ring consists of nine members, ...",
+		},
+	}
+
+	lotrFellowshipQuestion.AddOut(lotrFellowshipAnswer)
+
+	lotrFellowshipHobbitsQuestion := &graph.Message{
+		ID: "3",
+		ChatMessage: openai.ChatMessage{
+			Role:    openai.ChatRoleUser,
+			Content: "How do the Hobbits know eachother?",
+		},
+	}
+
+	lotrFellowshipAnswer.AddOut(lotrFellowshipHobbitsQuestion)
+
+	lotrFellowshipHobbitsAnswer := &graph.Message{
+		ID: "4",
+		ChatMessage: openai.ChatMessage{
+			Role:    openai.ChatRoleUser,
+			Content: "Frodo, Sam, Merry, and Pippin are all from the Shire, ...",
+		},
+	}
+
+	lotrFellowshipHobbitsQuestion.AddOut(lotrFellowshipHobbitsAnswer)
+
+	chat := &graph.Chat{
+		ID:   "LOTR",
+		Name: "Lord of the Rings",
+		Messages: graph.Messages{
+			lotrFellowshipQuestion, // The root message of the chat graph.
+		},
+	}
+
+	// Visit each message in the graph, depth-first. Print each message's content.
+	chat.Visit(context.Background(), func(message *graph.Message) error {
+		t.Logf("message %s: %s", message.ID, message.Content)
+		return nil
+	})
+}
