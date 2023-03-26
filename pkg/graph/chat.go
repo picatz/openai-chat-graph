@@ -177,7 +177,7 @@ func (msgs Messages) Summarize(ctx context.Context, client *openai.Client, model
 			Content: func() string {
 				var b strings.Builder
 
-				b.WriteString("Please summarize the following conversation:\n\n")
+				b.WriteString("Summarize the following conversation:\n\n")
 
 				for _, m := range msgs {
 					if m.Role == openai.ChatRoleSystem {
