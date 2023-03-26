@@ -279,3 +279,17 @@ func (s MessageSet) Has(message *Message) bool {
 	_, ok := s[message]
 	return ok
 }
+
+// GetOrPut returns the message if it has been seen, or adds it to the
+// seen messages and returns it. This is useful for adding a message
+// to the seen messages collection and returning it to be used in
+// a graph traversal algorithm. It is a convenience function that
+// combines the Add and Has functions into one.
+func (s MessageSet) GetOrPut(message *Message) *Message {
+	if s.Has(message) {
+		return message
+	}
+
+	s.Add(message)
+	return message
+}
