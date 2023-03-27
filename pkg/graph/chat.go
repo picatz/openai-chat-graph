@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -108,6 +109,61 @@ type Message struct {
 	Out Messages `json:"out,omitempty"`
 }
 
+// MarshalJSON implements the json.Marshaler interface for Message,
+// which is like the normal json.Marshal, but only includes message IDs
+// for the "in" and "out" collections, to reduce the size of the JSON.
+func (m *Message) MarshalJSON() ([]byte, error) {
+	// Using fmt.Sprintf instead of json.Marshal to avoid
+	// an infinite loop, and to avoid marshalling a another struct.
+	return []byte(
+		fmt.Sprintf(
+			`{"id":"%s","role":"%s","content":"%s","in":[%s],"out":[%s]}`,
+			m.ID,
+			m.Role,
+			m.Content,
+			strings.Join(m.In.IDs(), ","),
+			strings.Join(m.Out.IDs(), ","),
+		),
+	), nil
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface for Message,
+// partially unmarshalling the "in" and "out" messages, and leaving the
+// rest to the caller to do, if needed.
+//
+// This can be done at the message set or the graph level.
+func (m *Message) UnmarshalJSON(b []byte) error {
+	// Using json.Unmarshal instead of fmt.Sprintf to avoid
+	// an infinite loop, and to avoid unmarshalling a another struct.
+	var raw struct {
+		ID      string   `json:"id"`
+		Role    string   `json:"role"`
+		Content string   `json:"content"`
+		In      []string `json:"in"`
+		Out     []string `json:"out"`
+	}
+
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+
+	m.ID = raw.ID
+	m.Role = raw.Role
+	m.Content = raw.Content
+
+	// Parially unmarshal the "in" messages.
+	for _, id := range raw.In {
+		m.In = append(m.In, &Message{ID: id})
+	}
+
+	// Parially unmarshal the "out" messages.
+	for _, id := range raw.Out {
+		m.Out = append(m.Out, &Message{ID: id})
+	}
+
+	return nil
+}
+
 // AddIn adds a message to the "in" messages.
 func (m *Message) AddIn(msg *Message) {
 	m.In = append(m.In, msg)
@@ -143,6 +199,102 @@ func (m *Message) String() string {
 
 // Messages is a collection of messages.
 type Messages []*Message
+
+// OpenAIChatMessages returns a slice of OpenAI chat messages.
+func (msgs Messages) OpenAIChatMessages() []openai.ChatMessage {
+	chatMsgs := make([]openai.ChatMessage, len(msgs))
+	for i, msg := range msgs {
+		chatMsgs[i] = msg.ChatMessage
+	}
+	return chatMsgs
+}
+
+// Match returns a slice of messages that match the given predicate function.
+func (msgs Messages) Match(prFn func(*Message) bool) Messages {
+	matches := Messages{}
+	for _, msg := range msgs {
+		if prFn(msg) {
+			matches = append(matches, msg)
+		}
+	}
+	return matches
+}
+
+// IDs returns a slice of message IDs.
+func (msgs Messages) IDs() []string {
+	ids := make([]string, len(msgs))
+	for i, msg := range msgs {
+		ids[i] = msg.ID
+	}
+	return ids
+}
+
+// GetByID returns a message by ID (first match).
+func (msgs Messages) GetByID(id string) *Message {
+	for _, msg := range msgs {
+		if msg.ID == id {
+			return msg
+		}
+	}
+	return nil
+}
+
+// Hydrate fully hydrates the messages by adding the "in" and "out"
+// messages to the message collections instead of just the message IDs.
+func (msgs Messages) Hydrate(ctx context.Context, graph *Chat) {
+	for _, msg := range msgs {
+		msg.In = graph.GetMessages(msg.In.IDs()...)
+		msg.Out = graph.GetMessages(msg.Out.IDs()...)
+	}
+}
+
+// Hydrated returns true if the messages are fully hydrated.
+func (msgs Messages) Hydrated() bool {
+	for _, msg := range msgs {
+		for _, in := range msg.In {
+			if in.ID == "" {
+				return false
+			}
+			if in.Content == "" && in.Role == "" {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// GetMessages returns a collection of messages by ID for the graph.
+func (graph *Chat) GetMessages(ids ...string) Messages {
+	msgs := make(Messages, len(ids))
+	for _, msg := range graph.Messages {
+		for _, id := range ids {
+			if msg.ID == id {
+				msgs = append(msgs, msg)
+			}
+		}
+	}
+	return msgs
+}
+
+// GetMessageByID returns a message by ID (first match) for the graph.
+func (graph *Chat) GetMessageByID(id string) *Message {
+	for _, msg := range graph.Messages {
+		if msg.ID == id {
+			return msg
+		}
+	}
+	return nil
+}
+
+// HydrateMessages fully hydrates the messages by adding the "in" and "out"
+// messages to the message collections instead of just the message IDs.
+//
+// This only need to be called when loaded from a serialized graph,
+// since nested message collections are not fully serialized, only
+// the message IDs.
+func (graph *Chat) HydrateMessages(ctx context.Context) {
+	graph.Messages.Hydrate(ctx, graph)
+}
 
 // SearchResults is a collection of search results.
 type SearchResult struct {
@@ -195,6 +347,7 @@ var DefaultSummaryPrompt = strings.Join(
 	[]string{
 		"You are an expert at summarization that answers as concisely as possible.",
 		"Provide a summary of the given conversation, including all the key information (e.g. people, places, events, things, etc) to continue on the conversation.",
+		"Do not include any unnecessary information, or a prefix in the output.",
 	}, " ",
 )
 
