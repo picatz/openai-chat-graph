@@ -430,6 +430,17 @@ func (s MessageSet) Add(message *Message) {
 // Has returns true if the message has been seen.
 func (s MessageSet) Has(message *Message) bool {
 	_, ok := s[message]
+	if !ok {
+		// Fallback to checking the message ID.
+		if message.ID == "" {
+			for msg := range s {
+				if msg.ID == message.ID {
+					return true
+				}
+			}
+		}
+	}
+
 	return ok
 }
 
